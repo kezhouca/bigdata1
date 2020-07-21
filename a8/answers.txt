@@ -1,0 +1,42 @@
+1.What did you see in the execution plan for the “join in Spark” solution? Why was the execution so fast (and the memory usage so small)?
+== Physical Plan ==
+ObjectHashAggregate(keys=[orderkey#0, totalprice#8], functions=[collect_set(name#55, 0, 0)])
++- ObjectHashAggregate(keys=[orderkey#0, totalprice#8], functions=[partial_collect_set(name#55, 0, 0)])
+   +- *(4) Sort [orderkey#0 ASC NULLS FIRST], true, 0
+      +- Exchange rangepartitioning(orderkey#0 ASC NULLS FIRST, 200)
+         +- *(3) Project [orderkey#0, totalprice#8, name#55]
+            +- *(3) BroadcastHashJoin [partkey#25], [partkey#50], Inner, BuildRight
+               :- *(3) Project [orderkey#0, totalprice#8, partkey#25]
+               :  +- *(3) BroadcastHashJoin [orderkey#0], [orderkey#19], Inner, BuildLeft
+               :     :- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)))
+               :     :  +- *(1) Filter isnotnull(orderkey#0)
+               :     :     +- *(1) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@77c8c4af [orderkey#0,totalprice#8] PushedFilters: [*In(orderkey, [2579142,2816486,586119,441985,2863331]), IsNotNull(orderkey)], ReadSchema: struct<orderkey:int,totalprice:decimal(38,18)>
+               :     +- *(3) Filter (isnotnull(orderkey#19) && isnotnull(partkey#25))
+               :        +- *(3) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@53312cec [orderkey#19,partkey#25] PushedFilters: [*In(orderkey, [2579142,2816486,586119,441985,2863331]), IsNotNull(orderkey), IsNotNull(partkey)], ReadSchema: struct<orderkey:int,partkey:int>
+               +- BroadcastExchange HashedRelationBroadcastMode(List(cast(input[0, int, false] as bigint)))
+                  +- *(2) Filter isnotnull(partkey#50)
+                     +- *(2) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@59cf3d0c [partkey#50,name#55] PushedFilters: [IsNotNull(partkey)], ReadSchema: struct<partkey:int,name:string>
+I saw (3) BroadcasthashJoin in the excecution plan that orders  joined part and lineitem tables.
+Because the order table has a PushedFilter In(orderkey, [2579142,2816486,586119,441985,2863331] so that it won't grab all orders data and just get the orders we want and then joins other related tables.
+
+2.What was the CREATE TABLE statement you used for the orders_parts table?
+CREATE TABLE tpch1.orders (
+    orderkey int PRIMARY KEY,
+    clerk text,
+    comment text,
+    custkey int,
+    order_priority text,
+    orderdate date,
+    orderstatus text,
+    ship_priority int,
+    totalprice decimal,
+    part_names set<text>,
+)
+   
+3.What were the running times of the two tpch_orders_* programs on the tpch2 data on the cluster? These orderkeys have results in that data set: 2579142 2816486 586119 441985 2863331.
+tpch_orders_df.py took 1m36.231s
+tpch_orders_denorm.py took 0m36.035s 
+
+4.Consider the logic that you would have to implement to maintain the denormalized data (assuming that the orders table had the part_names column in the main data set). Write a few sentences on what you'd have to do when inserting/updating/deleting data in this case. 
+When I want to insert/update/delete data, I have to do it on both orders and orders_parts tables to keep them consistent.
+

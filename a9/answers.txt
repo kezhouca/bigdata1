@@ -1,0 +1,66 @@
+Ke Zhou
+Student ID: 301394911
+
+Q1: What is your best guess for the slope and intercept of the streaming points being produced?
+A1: My best guess for the slope is 61.12511282234644 and the intercept is -9.551030214673805
+
+Q2: Is your streaming program's estimate of the slope and intercept getting better as the program runs? (That is: is the program aggregating all of the data from the start of time, or only those that have arrived since the last output?)
+A2: Yes.
+
+Q3: In the colour classification question, what were your validation scores for the RGB and LAB pipelines?
+Validation score for RGB model: 0.577899
+Validation score for LAB model: 0.754169
+
+Q4: When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
+A4: 
+Model from tmax-1:
+r2= 0.7943232538437199
+rmse= 4.710819192345825
+tested by tmax-test:
+r2 = 0.7874638676221188
+rmse = 5.960308586537568
+Model from tmax-2:
+r2= 0.900205850451304
+rmse= 4.036592211550383
+tested by tmax-test:
+r2 = 0.8996528544841571
+rmse = 4.095480573003366 
+Yes, when predicting the tmax values, I over-fit the training data for tmax-1 because the error produced by tmax-test is quite bigger than by tmax-1
+
+Q5: What were your testing scores for your model with and without the “yesterday's temperature” feature?
+A5: Using GBTRegressor for tmax-1, my testing scores are:
+Without the "yesterday's temperature":
+r2= 0.7476511169541684
+rmse= 6.9370915305461125
+With the "yesterday's temperature": 
+r2= 0.8711965757247495
+rmse= 4.797754920715852
+We can see that with the "yesterday's temperature" is much better than without it.
+
+6.If you're using a tree-based model, you'll find a .featureImportances property that describes the relative importance of each feature (code commented out in weather_test.py; if not, skip this question). Have a look with and without the “yesterday's temperature” feature: do the results make sense and suggest that your model is making decisions reasonably? With “yesterday's temperature”, is it just predicting “same as yesterday”?
+Yes, the results make sesne and my model is making decisions reasonably. I can see that the r2 with yesterday_tmax is bigger than r2 without yesterday_tmax and rmse with yesterday_tmax is smaller than rmse without yesterdy_tmax. It means the model with yesterday_tmax is more accurate and better. With "yesterday's temperature", it is not just predicting "same as yesterday":
++-----------+----------+--------+---------+---------+-----+---+--------------+--------------------+-------------------+
+|    station|      date|latitude|longitude|elevation| tmax|doy|yesterday_tmax|            features|         prediction|
++-----------+----------+--------+---------+---------+-----+---+--------------+--------------------+-------------------+
+|CA001192345|2003-12-28| 58.4167|-130.0333|    793.0|-21.5|362|         -20.9|[58.4166984558105...|-13.455989587076866|
+|RSM00031436|1937-11-27|    52.7|    141.3|      5.0| -9.5|331|         -13.5|[52.7000007629394...|-0.7782011277229337|
+|CA003053988|2003-03-05| 50.1667|   -114.7|   2130.0| -7.2| 64|         -11.5|[50.1666984558105...| -10.49369904820868|
+|CA006141169|1971-04-04| 43.1833|   -80.45|    259.0|  1.7| 94|           0.0|[43.1833000183105...|  2.579818852030658|
+|UPM00033464|1979-03-22|   49.75|   30.117|    180.0| 11.0| 81|           8.0|[49.75,30.1170005...|   8.73262404638475|
+|USW00012839|1986-09-13| 25.7906| -80.3164|      8.8| 32.8|256|          32.8|[25.7905998229980...|  32.81388829916801|
+|USC00055970|1990-08-24| 37.8122|-109.0133|   2036.4| 25.6|236|          25.6|[37.8121986389160...|  25.56282655881314|
+|USC00231759|1983-12-18| 38.3333| -93.0833|    277.4|  1.1|352|          -2.2|[38.3333015441894...|  3.544234001359389|
+|RSM00023426|1997-07-16|  65.382|   64.717|     19.0| 16.5|197|          13.9|[65.3820037841796...| 12.421037951290451|
+|RSM00028719|1956-12-09|    54.0|     54.2|    348.0| -0.8|344|           1.0|[54.0,54.20000076...| 0.9052223174463684|
+|USC00502179|2004-07-03| 60.5358| -145.778|      3.0| 17.2|185|          16.1|[60.5358009338378...| 15.136368383090721|
+|USC00292837|1992-12-05| 36.5928|  -106.73|   2054.4|  1.1|340|           7.8|[36.5928001403808...|  7.986345286507049|
+|CA001066481|1979-04-15|    54.3|  -130.45|     35.0|  8.2|105|           7.9|[54.2999992370605...| 10.142683930427939|
+|USC00072730|1907-12-10| 39.1467| -75.5056|      9.1| 16.1|344|          11.7|[39.1467018127441...|  12.01028495868798|
+|USC00450729|1909-07-13| 48.9775|-122.7928|     18.3| 20.0|194|          18.9|[48.9775009155273...|  19.36343584152073|
+|USS0020A40S|2006-05-17|    48.2|  -120.96|   1862.3| 23.5|137|          21.8|[48.2000007629394...|  19.16153573057021|
+|CA008104600|1885-04-03| 45.0833| -67.0833|     15.0|  4.4| 93|           3.3|[45.0833015441894...| 3.0425926555431086|
+|CA007032370|1984-08-11|    46.7|   -75.45|    213.0| 24.5|224|          28.5|[46.7000007629394...|  25.72155263516821|
+|CA005010480|1954-03-27| 49.9167|   -99.95|    409.0|-11.1| 86|           1.7|[49.9166984558105...|  4.599118045579822|
+|CA007020392|1997-01-31|   45.65| -73.7333|     53.0| -4.0| 31|         -15.0|[45.6500015258789...| 0.9673945365562153|
++-----------+----------+--------+---------+---------+-----+---+--------------+--------------------+-------------------+
+

@@ -1,0 +1,58 @@
+
+Ke Zhou
+Student ID: 301394911
+
+Q1:What happened to the HDFS file when one of the nodes it was stored on failed? 
+
+A1: As soon as the node failed the web frontend (http://localhost:9870/) showed 3 active nodes instead of 4 datanodes. In the HDFS architecture a NameNode controls all the datanodes. when one of the nodes and the web frontend showed node failure. The NameNode did not receive any acknowledgement from the datanode which was stopped so it showed failure at that node. The NameNode then tries to maintain the replication and the data in that "failed" node is given to another node. In my case, after the datanode failure, the Under replication copied the data blocks on the failed datanode from other datanode to another datanode to maintain every data block still has two replications. So I saw the number of “Under-Replicated Blocks” on the NameNode front page was from 0 to 48 and then became 0 again. 
+
+
+Q2: How did YARN/MapReduce behave when one of the compute nodes disappeared?
+
+A2:  When we gave the command to stop a node which was being used as an executor as shown by Application master, it threw an error like this:
+.nio.channels.ClosedChannelException
+java.nio.channels.ClosedChannelException
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.write(...)(Unknown Source)
+2019-11-12 16:29:58,387 WARN cluster.YarnSchedulerBackend$YarnSchedulerEndpoint: Attempted to get executor loss reason for executor id 2 at RPC address 172.18.0.11:45476, but got no response. Marking as slave lost.
+java.io.IOException: Failed to send RPC RPC 9161734915234188474 to /172.18.0.11:45402: java.nio.channels.ClosedChannelException
+	at org.apache.spark.network.client.TransportClient$RpcChannelListener.handleFailure(TransportClient.java:362)
+	at org.apache.spark.network.client.TransportClient$StdChannelListener.operationComplete(TransportClient.java:339)
+	at io.netty.util.concurrent.DefaultPromise.notifyListener0(DefaultPromise.java:507)
+	at io.netty.util.concurrent.DefaultPromise.notifyListenersNow(DefaultPromise.java:481)
+	at io.netty.util.concurrent.DefaultPromise.notifyListeners(DefaultPromise.java:420)
+	at io.netty.util.concurrent.DefaultPromise.tryFailure(DefaultPromise.java:122)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.safeSetFailure(AbstractChannel.java:987)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.write(AbstractChannel.java:869)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.write(DefaultChannelPipeline.java:1316)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeWrite0(AbstractChannelHandlerContext.java:738)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeWrite(AbstractChannelHandlerContext.java:730)
+	at io.netty.channel.AbstractChannelHandlerContext.access$1900(AbstractChannelHandlerContext.java:38)
+	at io.netty.channel.AbstractChannelHandlerContext$AbstractWriteTask.write(AbstractChannelHandlerContext.java:1081)
+	at io.netty.channel.AbstractChannelHandlerContext$WriteAndFlushTask.write(AbstractChannelHandlerContext.java:1128)
+	at io.netty.channel.AbstractChannelHandlerContext$AbstractWriteTask.run(AbstractChannelHandlerContext.java:1070)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:403)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:463)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:858)
+	at io.netty.util.concurrent.DefaultThreadFactory$DefaultRunnableDecorator.run(DefaultThreadFactory.java:138)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: java.nio.channels.ClosedChannelException
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.write(...)(Unknown Source)
+2019-11-12 16:29:58,520 ERROR cluster.YarnScheduler: Lost executor 2 on yarn-nodemanager-3: Slave lost
+2019-11-12 16:29:58,662 WARN scheduler.TaskSetManager: Lost task 5.0 in stage 1.0 (TID 105, yarn-nodemanager-3, executor 2): ExecutorLostFailure (executor 2 exited caused by one of the running tasks) Reason: Slave lost
+
+In my case the job was divided to 6 executors on 3 yarn-nodemanagers. When I stoped a node,the yarn manager throws errors of the excutors related with the failed node's tasks and the job of the lost executor will be carried out by remaining nodes and it's computation is put in queue for both of the remaining nodes. Every yarn-nodemanager has 3 excutors after stopping the node. After throwing the error message the job continued to proceed until it finished the computation. This proved the robustness of the system and even after the node failure the job was finished. It  took a little longer to finish the job but it didn't stop the computation.
+
+
+Q3: Were there more things you'd like to try with this cluster, or anything you did try that you think should have been in this assignment?
+
+A3: I tried running wordcount.py on the new environment by following the below steps:
+sudo docker exec -it 732dockercluster_hdfs-namenode_1 bash
+
+scp chowkec@gateway.sfucloud.ca:~/732/a2/wordcount.py .
+wget https://ggbaker.ca/732-datasets/wordcount-1.zip
+unzip wordcount-1.zip
+hdfs dfs -copyFromLocal wordcount-1 wordcount-1
+spark-submit wordcount.py wordcount-1 output-1
+hdfs dfs -ls output-1
+

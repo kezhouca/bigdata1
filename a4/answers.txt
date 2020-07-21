@@ -1,0 +1,12 @@
+1.How much of a difference did the .cache() make in your Reddit ETL code?
+For reddit-3, there is signicant difference between with cache(22s) and without-cache(59s). It's 60%+ improvement.
+
+2.When would .cache() make code slower than without?
+a.cache is too big and use all memory
+b.cache needs to be frequently updated 
+
+3.Under what conditions will the broadcast join be faster than an actual join?
+When braodcast dataset is a small or medium size dataset the broadcast join will be faster than an actural join
+
+4.When will the broadcast join be slower?
+When the broadcast dataset is huge, the broadcast join will be slower since it has to be copied to every excutor.

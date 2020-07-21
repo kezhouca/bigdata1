@@ -1,0 +1,29 @@
+What was wrong with the original wordcount-5 data set that made repartitioning worth it? Why did the program run faster after?
+A: The first file in wordcount-5 is very large than other files so that it takes a very long time for the excutor to finish it.
+After repartition, every excutor takes a similar data/file size to work on so the program run faster after.
+ 
+The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why? [For once, the answer is not “the data set is too small”.]
+A: The wordcount-3 data set has 101 items so originally they can be distributed averagelly to 8 excutors. Every excutor has similar data size to deal with. 
+If using the same fix by repartition, spark has to make the data more fragmented and may be slightly slower.
+
+How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible? (It's possible to get about another minute off the running time.)
+A:We can divide the wordcount-5 input into 8 files with the almost same size by split linux command
+
+When experimenting with the number of partitions while estimating Euler's constant, you likely didn't see much difference for a range of values, and chose the final value in your code somewhere in that range. What range of partitions numbers was “good” (on the desktop/laptop where you were testing)?
+100-1000 for 1b; 30-40 for 1m
+
+How much overhead does it seem like Spark adds to a job? How much speedup did PyPy get over the usual Python implementation?
+A: By experiments(10 slices), I got the results below:
+PYPY=/usr/shared/CMPT/big-data/pypy3.6-v7.1.1-linux64/bin/pypy3
+# standard CPython implementation: 3m52.123s
+export PYSPARK_PYTHON=python3
+time ${SPARK_HOME}/bin/spark-submit euler.py 1000000000
+# Spark Python with PyPy: 0m25.967s
+export PYSPARK_PYTHON=${PYPY}
+time ${SPARK_HOME}/bin/spark-submit euler.py 1000000000
+# Non-Spark single-threaded PyPy: 0m41.206s
+time ${PYPY} euler_single.py 1000000000
+# Non-Spark single-threaded C: 0m28.598s
+gcc -Wall -O2 -o euler euler.c && time ./euler 1000000000 
+
+Spark adds about 5 times to a job. PyPy get over the usual Python implementation about 8 times speedup.

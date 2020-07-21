@@ -1,0 +1,22 @@
+1.In the Reddit averages execution plan, which fields were loaded? How was the average computed (and was a combiner-like step done)?
+score#16L,subreddit#18. Spark loads the data to memoery and partition by subreddits key, aggregates average scores in partitions and then finally aggregate data from  all partitions.
+
+2.What was the running time for your Reddit averages implementations in the five scenarios described above? How much difference did Python implementation make (PyPy vs the default CPython)? Why was it large for RDDs but not for DataFrames?
+MapReduce							2m25.128s
+Spark DataFrames (with CPython)		0m48.151s	
+Spark RDDs (with CPython)			2m30.830s
+Spark DataFrames (with PyPy)		0m49.501s
+Spark RDDs (with PyPy)				1m34.686s
+For DataFrames,PyPy and CPython are similar.For RDDs,PyPy and CPython make diffenrence.
+The elements of a Python RDD were always opaque to the underlying Scala/JVM code: they were just serialized Python objects, and all work on them was done by passing the data back to Python code.
+DataFrames contain JVM (Scala) objects: all manipulation is done in the JVM. Our Python code passes descriptions of the calculations to the JVM.
+So RDDs speed depend on python impementation efficiency(PyPy and CPython) and DataFrames speed has nothing to do with it.
+ 
+3.How much of a difference did the broadcast hint make to the Wikipedia popular code's running time (and on what data set)?
+For pagecounts-1, with broadcast the time is  0m32.540s  and without broadcast the time is 0m50.776s
+
+4.How did the Wikipedia popular execution plan differ with and without the broadcast hint?
+With broadcast hint, Spark automatically does a broadcast join. In the plan there is step called BroadcastExchange that broadcasts the (hour,max(views)) to all nodes.
+
+5.For the weather data question, did you prefer writing the “DataFrames + Python methods” style, or the “temp tables + SQL syntax” style form solving the problem? Which do you think produces more readable code?
+I prefer the "temp tables + SQL syntax" style form solving the problem. I think it produces more readable code. 

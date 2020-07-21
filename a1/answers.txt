@@ -1,0 +1,9 @@
+1. Are there any parts of the original WordCount that still confuse you? If so, what?
+A:I didn't understand the "key" parameter in map function signature,then I googled and found it from https://stackoverflow.com/questions/19624607/mapper-input-key-value-pair-in-hadoop:
+In the book "Hadoop: The Difinitive Guide" by Tom White I think he has an appropriate answer to this(pg. 197):"TextInputFormatâ€™s keys, being simply the offset within the file, are not normally very useful. It is common for each line in a file to be a key-value pair, separated by a delimiter such as a tab character. For example, this is the output produced by TextOutputFormat, Hadoopâ€™s default OutputFormat. To interpret such files correctly, KeyValueTextInputFormat is appropriate.You can specify the separator via the key.value.separator.in.input.line property. It is a tab character by default."
+2.How did the output change when you submitted with -D mapreduce.job.reduces=3? Why would this be necessary if your job produced large output sets?
+A:When I submitted with -D mapreduce.job.reduces=3, the output produced 3 files like: part-r-00000 part-r-00001 part-r-00002. If my job produced large output sets this is necessary because reducers can work in parallel and produces separate smaller output files. 
+3.How was the -D mapreduce.job.reduces=0 output different?
+A:The output produced 3 files like part-m-00000 part-m-00001 part-m-00002 They are only mapped in original order and unreduced. 
+4.Was there any noticeable difference in the running time of your RedditAverage with and without the combiner optimization? 
+A:Yes. The running time with combiner optimization is 85s and the other without combiner optimization is 111s for the same dataset Reddit-5. It's 23.4% improved.

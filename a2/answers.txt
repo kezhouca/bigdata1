@@ -1,0 +1,14 @@
+1.In the WikipediaPopular class, it would be much more interesting to find the page that is most popular, not just the view count (as we did with Spark). What would be necessary to modify your class to do this? (You don't have to actually implement it.)
+I will create a new class that extends from Writable and it will have two fields view count and page title. I will use it for map and reduce methods so that it can carry page tile information when mapping or reducing. 
+
+2.An RDD has many methods: it can do many more useful tricks than were at hand with MapReduce. Write a sentence or two to explain the difference between .map and .flatMap. Which is more like the MapReduce concept of mapping?
+map: It returns a new RDD by applying given function to each element of the RDD. Function in map returns only one item.
+flatMap: Similar to map, it returns a new RDD by applying a function to each element of the RDD, but output is flattened.
+Map is more like the MapReduce concept of mapping.
+
+3.Do the same for .reduce and .reduceByKey. Which is more like the MapReduce concept of reducing? 
+The .reduce method reduces all elements in the RDD to one result; .reduceByKey reduces the values over each key.
+.reduceByKey method is more like the MapReduce concept of reducing.
+
+4.When finding popular Wikipedia pages, the maximum number of page views is certainly unique, but the most popular page might be a tie. What would your improved Python implementation do if there were two pages with the same highest number of page views in an hour? What would be necessary to make your code find all of the pages views the maximum number of times? (Again, you don't have to actually implement this.)
+I would implement a new max function to replace the default one. When the new value equals to the max value, I would keep the both page titles. It would be nessagry to make the code find all of the pages views the maximum number of times that changes the data structure of (key,(count,title)) to [key,[count,[title list]]] so that I can append the new title to the title list instead of the unmutible tuple. 

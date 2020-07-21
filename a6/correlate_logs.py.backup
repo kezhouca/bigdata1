@@ -1,0 +1,48 @@
+from pyspark import SparkConf, SparkContext
+import sys,re,math
+assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
+from pyspark.sql import SparkSession, functions, types
+spark = SparkSession.builder.appName('example code').getOrCreate()
+spark.sparkContext.setLogLevel('WARN')
+sc = spark.sparkContext
+
+line_re = re.compile(r'^(\S+) - - \[(\S+) [+-]\d+\] \"[A-Z]+ (\S+) HTTP/\d\.\d\" \d+ (\d+)$')
+schema = types.StructType([
+    types.StructField('hostname', types.StringType()),
+    types.StructField('datetime', types.StringType()),
+    types.StructField('path', types.StringType()),
+    types.StructField('bytes', types.IntegerType())])
+
+def read_line(line):
+	m=line_re.match(line)
+	if m is None:
+		return None
+	return (m.group(1),m.group(2),m.group(3),int(m.group(4)))
+
+def main(inputs):
+	text = sc.textFile(inputs)
+	rdd = text.map(read_line).filter(lambda x:x is not None)
+	logs= spark.createDataFrame(rdd,schema)
+	logs.createOrReplaceTempView('logs')
+	stat=spark.sql('select count(logs.hostname) as counts, sum(logs.bytes) bytes from logs group By logs.hostname')
+	stat.createOrReplaceTempView('stat')
+	temp=spark.sql('select counts as x,bytes as y from stat')
+	final=temp.createOrReplaceTempView('temp')
+	final=spark.sql('select x,y,x*x as x2,y*y as y2, x*y as xy from temp')
+	final.createOrReplaceTempView('final')
+	result=spark.sql('select count(x) as n, sum(x) as sumx, sum(y) as sumy, sum(x*x) as sumx2,sum(y*y) as sumy2, sum(xy) as sumxy from final')
+	row=result.collect()[0]
+	n=row.n
+	sumx=row.sumx
+	sumy=row.sumy
+	sumx2=row.sumx2
+	sumy2=row.sumy2
+	sumxy=row.sumxy
+	r=(n*sumxy-sumx*sumy)/(math.sqrt(n*sumx2-sumx*sumx)*math.sqrt(n*sumy2-sumy*sumy))
+	print('r=',r)
+	print('r^2=',r*r)
+
+if __name__ == '__main__':
+    inputs = sys.argv[1]
+    main(inputs)
+

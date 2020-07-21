@@ -1,0 +1,28 @@
+1. What happened when you inserted another row with the same primary key as an existing row?
+It updated the exitsting row with new other values
+
+2. What happened when you query a keyspace with replication factor 1 and one node down? How did it behave with replication factor 2 and a node down?
+when I query a keyspace with replication factor 1 and one node down, it will fail. How it behave depends on consistency level  with replication factor 2 and a node down. If it is 'one' it will work; if it's 'all', it will fail.
+
+3. How did the consistency level affect the results with the node up/down?
+When level is ALL, a write must be written to the commit log and memtable on all replica nodes in the cluster for that partition.
+When level is ONE/TWO/THREE, a write must be written to the commit log and memtable of at least one/two/three replica node(s).
+https://docs.datastax.com/en/archived/cassandra/3.x/cassandra/dml/dmlConfigConsistency.html
+
+4. Which of the WHERE id=? values returned successfully with CONSISTENCY ALL when one of the nodes was down? Why do you think some could be returned but not others?
+1 and 4. Because 1 and 4 are stored on healthy nodes and others have their replicas on the node was down.
+
+5. What was the CREATE TABLE statement you used for the nasalogs table? What was the primary key you choose, and why?
+CREATE TABLE nasalogs (
+  host TEXT,
+  datetime TIMESTAMP,
+  path TEXT,
+  bytes INT,
+  id UUID,
+  PRIMARY KEY (id,host)
+);
+UUID, because it's unique for primary key.
+
+6. What was the CQL query you used (or tried) to get the total number of bytes?
+select sum(bytes) from nasalogs;
+ 

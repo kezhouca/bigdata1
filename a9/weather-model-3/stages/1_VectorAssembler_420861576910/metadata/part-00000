@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1573169046351,"sparkVersion":"2.4.4","uid":"VectorAssembler_420861576910","paramMap":{"inputCols":["latitude","longitude","elevation","doy"],"outputCol":"features"},"defaultParamMap":{"handleInvalid":"error","outputCol":"VectorAssembler_420861576910__output"}}
